@@ -41,7 +41,7 @@ const Footer = () => (
       </div>
       <div className="border-t border-border/50 pt-6 text-center text-xs text-muted-foreground space-y-1">
         <p>© {new Date().getFullYear()} Kivu Cinema. All rights reserved.</p>
-        <p>Developed by <a href="https://www.instagram.com/1chanel___/" target="_blank" rel="noopener noreferrer" className="text-foreground font-medium hover:text-primary transition-colors">Sport Bike</a></p>
+        <p>Developed by <a href="https://www.instagram.com/1chanel___/" target="_blank" rel="noopener noreferrer" className="text-foreground font-medium hover:text-primary transition-colors">Chanel</a></p>
       </div>
     </div>
   </footer>
