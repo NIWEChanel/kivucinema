@@ -42,20 +42,23 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {searchOpen ? (
-              <div className="flex items-center gap-2 animate-scale-in">
-                <input type="text" placeholder="Search videos..."
-                  className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-48"
-                  autoFocus onBlur={() => setSearchOpen(false)} />
-                <button onClick={() => setSearchOpen(false)}>
-                  <X className="w-4 h-4 text-muted-foreground" />
+            {/* Desktop search */}
+            <div className="hidden md:flex items-center">
+              {searchOpen ? (
+                <div className="flex items-center gap-2 animate-scale-in">
+                  <input type="text" placeholder="Search videos..."
+                    className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-48"
+                    autoFocus onBlur={() => setSearchOpen(false)} />
+                  <button onClick={() => setSearchOpen(false)}>
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setSearchOpen(true)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+                  <Search className="w-5 h-5 text-muted-foreground" />
                 </button>
-              </div>
-            ) : (
-              <button onClick={() => setSearchOpen(true)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-                <Search className="w-5 h-5 text-muted-foreground" />
-              </button>
-            )}
+              )}
+            </div>
 
             {user ? (
               <>
@@ -66,7 +69,6 @@ const Navbar = () => {
                     </Button>
                   </Link>
                 )}
-                {/* Show Join Now only if user has NO active subscription */}
                 {!hasActiveSubscription && (
                   <Link to="/pricing">
                     <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow-sm">Join Now</Button>
@@ -78,7 +80,6 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {/* Show Sign In only when NOT logged in */}
                 <Link to="/login">
                   <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">Sign In</Button>
                 </Link>
@@ -88,14 +89,22 @@ const Navbar = () => {
               </>
             )}
 
-            <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
+            <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu">
               {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
         {isOpen && (
-          <div className="md:hidden pb-4 animate-fade-in">
+          <div className="md:hidden pb-4 animate-fade-in space-y-3">
+            <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+              <input
+                type="text"
+                placeholder="Search videos..."
+                className="bg-transparent text-sm focus:outline-none w-full"
+              />
+            </div>
             {navLinks.map((link) => (
               <Link key={link.to} to={link.to}
                 className="block py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
