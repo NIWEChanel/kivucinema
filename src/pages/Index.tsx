@@ -85,8 +85,8 @@ const Index = () => {
       </section>
 
       <div className="-mt-16 relative z-10">
-        <VideoRow title="🔥 Trending Now" items={trending} />
-        <VideoRow title="✨ New Releases" items={newReleases} />
+        <VideoRow title=" Trending Now" items={trending} />
+        <VideoRow title=" New Releases" items={newReleases} />
       </div>
 
       <Footer />
