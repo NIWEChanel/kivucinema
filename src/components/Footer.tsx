@@ -7,7 +7,7 @@ const Footer = () => (
         <div>
           <h3 className="text-lg font-bold text-gradient mb-4">Kivu Cinema</h3>
           <p className="text-sm text-muted-foreground">
-            Kivu Cinema. Premium video streaming — watch anywhere, anytime.
+            Kivu Cinema. Premium video streaming and watch anywhere, anytime.
           </p>
         </div>
         <div>
