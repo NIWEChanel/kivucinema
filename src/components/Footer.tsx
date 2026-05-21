@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 const Footer = () => (
   <footer className="border-t border-border/50 py-12 mt-16">
     <div className="container mx-auto px-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         <div>
           <h3 className="text-lg font-bold text-gradient mb-4">Kivu Cinema</h3>
           <p className="text-sm text-muted-foreground">
@@ -11,32 +11,28 @@ const Footer = () => (
           </p>
         </div>
         <div>
-          <h4 className="font-semibold mb-3 text-sm">Browse</h4>
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <Link to="/movies" className="hover:text-foreground transition-colors">Videos</Link>
-            <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-          </div>
-        </div>
-        <div>
-          <h4 className="font-semibold mb-3 text-sm">Payment</h4>
-          <p className="text-sm text-muted-foreground">MTN Mobile Money (MoMo Pay)</p>
-          <p className="text-sm text-muted-foreground mt-1">Code: 2099960</p>
-          <p className="text-sm text-muted-foreground">Rwanda 🇷🇼</p>
-        </div>
-        <div>
           <h4 className="font-semibold mb-3 text-sm">Support</h4>
-          <p className="text-sm text-muted-foreground">
-            Email:{" "}
-            <a href="mailto:shyakabruce0@gmail.com" className="hover:text-foreground transition-colors">
-              shyakabruce0@gmail.com
-            </a>
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Phone:{" "}
-            <a href="tel:+250793919556" className="hover:text-foreground transition-colors">
-              +250 793 919 556
-            </a>
-          </p>
+          <ul className="flex flex-col gap-2 text-sm text-muted-foreground list-disc pl-5">
+            <li>
+              Email:{" "}
+              <a href="mailto:shyakabruce0@gmail.com" className="hover:text-foreground transition-colors">
+                shyakabruce0@gmail.com
+              </a>
+            </li>
+            <li>
+              Phone:{" "}
+              <a href="tel:+250793919556" className="hover:text-foreground transition-colors">
+                +250 793 919 556
+              </a>
+            </li>
+            <li>Payment: MTN MoMo Pay — Code 2099960 (Rwanda 🇷🇼)</li>
+            <li>
+              <Link to="/movies" className="hover:text-foreground transition-colors">Browse Videos</Link>
+            </li>
+            <li>
+              <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+            </li>
+          </ul>
         </div>
       </div>
       <div className="border-t border-border/50 pt-6 text-center text-xs text-muted-foreground space-y-1">
