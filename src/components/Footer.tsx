@@ -25,13 +25,6 @@ const Footer = () => (
                 +250 793 919 556
               </a>
             </li>
-            <li>Payment: MTN MoMo Pay — Code 2099960 (Rwanda 🇷🇼)</li>
-            <li>
-              <Link to="/movies" className="hover:text-foreground transition-colors">Browse Videos</Link>
-            </li>
-            <li>
-              <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-            </li>
           </ul>
         </div>
       </div>
