@@ -212,6 +212,7 @@ export type Database = {
           price: number | null
           rating: number | null
           title: string
+          trailer_url: string | null
           updated_at: string | null
           video_url: string | null
           year: number | null
@@ -230,6 +231,7 @@ export type Database = {
           price?: number | null
           rating?: number | null
           title: string
+          trailer_url?: string | null
           updated_at?: string | null
           video_url?: string | null
           year?: number | null
@@ -248,6 +250,7 @@ export type Database = {
           price?: number | null
           rating?: number | null
           title?: string
+          trailer_url?: string | null
           updated_at?: string | null
           video_url?: string | null
           year?: number | null
