@@ -52,6 +52,38 @@ const MovieDetail = () => {
     }
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = video?.title || "Kivu Cinema";
+    const text = `${title}${video?.description ? " — " + video.description.slice(0, 120) : ""}`;
+    const thumbUrl = video?.portrait_thumbnail || video?.landscape_thumbnail;
+
+    try {
+      if (navigator.share) {
+        let files: File[] | undefined;
+        if (thumbUrl && (navigator as any).canShare) {
+          try {
+            const res = await fetch(thumbUrl);
+            const blob = await res.blob();
+            const ext = (blob.type.split("/")[1] || "jpg").split("+")[0];
+            const file = new File([blob], `${title}.${ext}`, { type: blob.type });
+            if ((navigator as any).canShare({ files: [file] })) {
+              files = [file];
+            }
+          } catch {}
+        }
+        await navigator.share(files ? { title, text, url, files } : { title, text, url });
+        return;
+      }
+      await navigator.clipboard.writeText(`${title}\n${url}`);
+      toast({ title: "Link copied", description: "Share it anywhere you like." });
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        toast({ title: "Couldn't share", description: err?.message, variant: "destructive" });
+      }
+    }
+  };
+
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>;
   if (!video) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Video not found.</p></div>;
 
