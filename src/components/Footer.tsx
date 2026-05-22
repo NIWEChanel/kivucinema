@@ -7,7 +7,10 @@ const Footer = () => (
         <div>
           <h3 className="text-lg font-bold text-gradient mb-4">Kivu Cinema</h3>
           <p className="text-sm text-muted-foreground">
-            Kivu Cinema. Premium video streaming and watch anywhere, anytime.
+           Kivu Cinema is a digital movie distribution platform founded by young filmmaker Shyaka Bruce, 
+            created to support solo and emerging filmmakers across Rwanda and Africa. The platform gives independent 
+            creators a professional space to publish, showcase, and grow their films while 
+            connecting local stories with wider audiences.
           </p>
         </div>
         <div>
