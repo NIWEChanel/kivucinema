@@ -461,7 +461,7 @@ const AdminDashboard = () => {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">Video Library</h2>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-                  onClick={() => { setEditingVideo(null); setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", is_featured: false, is_trending: false, is_new_release: false }); setShowVideoForm(true); }}>
+                  onClick={() => { setEditingVideo(null); setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false }); setShowVideoForm(true); }}>
                   <Plus className="w-4 h-4" /> Add Video
                 </Button>
               </div>
