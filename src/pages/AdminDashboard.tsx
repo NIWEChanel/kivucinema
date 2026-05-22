@@ -25,7 +25,7 @@ const AdminDashboard = () => {
   const [editingVideo, setEditingVideo] = useState<any>(null);
   const [videoForm, setVideoForm] = useState({
     title: "", description: "", category: "Action", duration: "", rating: 0,
-    year: new Date().getFullYear(), price: 0, video_url: "",
+    year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "",
     is_featured: false, is_trending: false, is_new_release: false,
   });
   const [landscapeFile, setLandscapeFile] = useState<File | null>(null);
