@@ -528,6 +528,11 @@ const AdminDashboard = () => {
                       <input value={videoForm.video_url} onChange={e => setVideoForm({ ...videoForm, video_url: e.target.value })}
                         className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="https://..." />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm text-muted-foreground mb-1 block">YouTube Trailer URL</label>
+                      <input value={videoForm.trailer_url} onChange={e => setVideoForm({ ...videoForm, trailer_url: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="https://youtube.com/watch?v=..." />
+                    </div>
                     <div>
                       <label className="text-sm text-muted-foreground mb-1 block">Landscape Thumbnail (Desktop)</label>
                       <input type="file" accept="image/*" onChange={e => setLandscapeFile(e.target.files?.[0] || null)}
