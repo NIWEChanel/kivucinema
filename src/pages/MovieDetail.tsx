@@ -99,7 +99,7 @@ const MovieDetail = () => {
                     </a>
                   </Button>
                 )}
-                <Button size="lg" variant="outline" className="border-border/50 gap-2"><Share2 className="w-5 h-5" /></Button>
+                <Button size="lg" variant="outline" className="border-border/50 gap-2" onClick={handleShare}><Share2 className="w-5 h-5" /> Share</Button>
               </div>
             </div>
           </div>
