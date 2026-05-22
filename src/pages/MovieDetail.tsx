@@ -92,7 +92,13 @@ const MovieDetail = () => {
                   {hasActiveSubscription ? <Play className="w-5 h-5" fill="currentColor" /> : <Lock className="w-5 h-5" />}
                   {hasActiveSubscription ? "Watch Now" : "Subscribe to Watch"}
                 </Button>
-                <Button size="lg" variant="outline" className="border-border/50 gap-2"><Heart className="w-5 h-5" /> Favorite</Button>
+                {video.trailer_url && (
+                  <Button asChild size="lg" variant="outline" className="border-border/50 gap-2">
+                    <a href={video.trailer_url} target="_blank" rel="noopener noreferrer">
+                      <Youtube className="w-5 h-5" /> Watch Trailer
+                    </a>
+                  </Button>
+                )}
                 <Button size="lg" variant="outline" className="border-border/50 gap-2"><Share2 className="w-5 h-5" /></Button>
               </div>
             </div>
