@@ -184,7 +184,7 @@ const AdminDashboard = () => {
         toast({ title: "Video added!" });
       }
       setShowVideoForm(false); setEditingVideo(null); setLandscapeFile(null); setPortraitFile(null);
-      setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", is_featured: false, is_trending: false, is_new_release: false });
+      setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false });
       fetchData();
     } catch (e: any) { toast({ title: "Error saving video", description: e.message, variant: "destructive" }); }
   };
