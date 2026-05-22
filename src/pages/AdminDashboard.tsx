@@ -199,7 +199,7 @@ const AdminDashboard = () => {
     setVideoForm({
       title: video.title, description: video.description || "", category: video.category,
       duration: video.duration || "", rating: video.rating || 0, year: video.year || new Date().getFullYear(),
-      price: video.price || 0, video_url: video.video_url || "",
+      price: video.price || 0, video_url: video.video_url || "", trailer_url: video.trailer_url || "",
       is_featured: video.is_featured, is_trending: video.is_trending, is_new_release: video.is_new_release,
     });
     setShowVideoForm(true);
