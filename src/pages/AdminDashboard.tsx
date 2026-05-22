@@ -25,7 +25,7 @@ const AdminDashboard = () => {
   const [editingVideo, setEditingVideo] = useState<any>(null);
   const [videoForm, setVideoForm] = useState({
     title: "", description: "", category: "Action", duration: "", rating: 0,
-    year: new Date().getFullYear(), price: 0, video_url: "",
+    year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "",
     is_featured: false, is_trending: false, is_new_release: false,
   });
   const [landscapeFile, setLandscapeFile] = useState<File | null>(null);
@@ -184,7 +184,7 @@ const AdminDashboard = () => {
         toast({ title: "Video added!" });
       }
       setShowVideoForm(false); setEditingVideo(null); setLandscapeFile(null); setPortraitFile(null);
-      setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", is_featured: false, is_trending: false, is_new_release: false });
+      setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false });
       fetchData();
     } catch (e: any) { toast({ title: "Error saving video", description: e.message, variant: "destructive" }); }
   };
@@ -199,7 +199,7 @@ const AdminDashboard = () => {
     setVideoForm({
       title: video.title, description: video.description || "", category: video.category,
       duration: video.duration || "", rating: video.rating || 0, year: video.year || new Date().getFullYear(),
-      price: video.price || 0, video_url: video.video_url || "",
+      price: video.price || 0, video_url: video.video_url || "", trailer_url: video.trailer_url || "",
       is_featured: video.is_featured, is_trending: video.is_trending, is_new_release: video.is_new_release,
     });
     setShowVideoForm(true);
@@ -461,7 +461,7 @@ const AdminDashboard = () => {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">Video Library</h2>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-                  onClick={() => { setEditingVideo(null); setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", is_featured: false, is_trending: false, is_new_release: false }); setShowVideoForm(true); }}>
+                  onClick={() => { setEditingVideo(null); setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false }); setShowVideoForm(true); }}>
                   <Plus className="w-4 h-4" /> Add Video
                 </Button>
               </div>
@@ -527,6 +527,11 @@ const AdminDashboard = () => {
                       <label className="text-sm text-muted-foreground mb-1 block">Or paste Video URL</label>
                       <input value={videoForm.video_url} onChange={e => setVideoForm({ ...videoForm, video_url: e.target.value })}
                         className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="https://..." />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm text-muted-foreground mb-1 block">YouTube Trailer URL</label>
+                      <input value={videoForm.trailer_url} onChange={e => setVideoForm({ ...videoForm, trailer_url: e.target.value })}
+                        className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="https://youtube.com/watch?v=..." />
                     </div>
                     <div>
                       <label className="text-sm text-muted-foreground mb-1 block">Landscape Thumbnail (Desktop)</label>

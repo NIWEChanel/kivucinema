@@ -15,20 +15,12 @@ const Footer = () => (
         </div>
         <div>
           <h4 className="font-semibold mb-3 text-sm">Support</h4>
-          <ul className="flex flex-col gap-2 text-sm text-muted-foreground list-disc pl-5">
-            <li>
-              Email:{" "}
-              <a href="mailto:shyakabruce0@gmail.com" className="hover:text-foreground transition-colors">
-                shyakabruce0@gmail.com
-              </a>
-            </li>
-            <li>
-              Phone:{" "}
-              <a href="tel:+250793919556" className="hover:text-foreground transition-colors">
-                +250 793 919 556
-              </a>
-            </li>
-          </ul>
+          <a
+            href="tel:+250793919556"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors px-4 py-2 text-sm font-medium"
+          >
+            Call +250 793 919 556
+          </a>
         </div>
       </div>
       <div className="border-t border-border/50 pt-6 text-center text-xs text-muted-foreground space-y-1">
