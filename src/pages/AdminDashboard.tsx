@@ -703,6 +703,59 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          {activeTab === "shares" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="glass rounded-xl p-5">
+                  <p className="text-xs text-muted-foreground mb-1">Total Shares</p>
+                  <p className="text-3xl font-bold">{totalShares}</p>
+                </div>
+                <div className="glass rounded-xl p-5">
+                  <p className="text-xs text-muted-foreground mb-1">Shares (last 7 days)</p>
+                  <p className="text-3xl font-bold">{shares7d}</p>
+                </div>
+                <div className="glass rounded-xl p-5">
+                  <p className="text-xs text-muted-foreground mb-1">Unique Videos Shared</p>
+                  <p className="text-3xl font-bold">{new Set(shareEvents.map(s => s.video_id)).size}</p>
+                </div>
+              </div>
+
+              <div className="glass rounded-xl p-6">
+                <h2 className="text-lg font-semibold mb-4">Top Shared Videos</h2>
+                {shareCounts.filter(s => s.count > 0).length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-8">No shares yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {shareCounts.filter(s => s.count > 0).slice(0, 20).map((s) => (
+                      <div key={s.id} className="flex items-center justify-between py-2 border-b border-border/30">
+                        <span className="text-sm font-medium truncate">{s.title}</span>
+                        <span className="text-sm text-primary font-semibold">{s.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="glass rounded-xl p-6">
+                <h2 className="text-lg font-semibold mb-4">Recent Share Activity</h2>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {shareEvents.slice(0, 50).map((s) => {
+                    const v = videos.find(vv => vv.id === s.video_id);
+                    return (
+                      <div key={s.id} className="flex items-center justify-between py-2 border-b border-border/30 text-sm">
+                        <span className="truncate">{v?.title || "Unknown video"}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {s.method || "share"} · {new Date(s.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {shareEvents.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No activity yet</p>}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
