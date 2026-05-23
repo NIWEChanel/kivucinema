@@ -131,6 +131,30 @@ export type Database = {
         }
         Relationships: []
       }
+      share_events: {
+        Row: {
+          created_at: string
+          id: string
+          method: string | null
+          user_id: string | null
+          video_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          method?: string | null
+          user_id?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          method?: string | null
+          user_id?: string | null
+          video_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
