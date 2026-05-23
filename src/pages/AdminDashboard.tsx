@@ -277,7 +277,17 @@ const AdminDashboard = () => {
     { id: "videos", label: "Videos", icon: Film },
     { id: "plans", label: "Plans", icon: DollarSign },
     { id: "users", label: "Users", icon: Users },
+    { id: "shares", label: "Shares", icon: Share2 },
   ];
+
+  // Aggregate shares per video
+  const shareCounts = videos.map(v => ({
+    id: v.id,
+    title: v.title,
+    count: shareEvents.filter(s => s.video_id === v.id).length,
+  })).sort((a, b) => b.count - a.count);
+  const totalShares = shareEvents.length;
+  const shares7d = shareEvents.filter(s => new Date(s.created_at) >= weekAgo).length;
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>;
 
