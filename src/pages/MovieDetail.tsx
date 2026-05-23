@@ -58,6 +58,13 @@ const MovieDetail = () => {
     const text = `${title}${video?.description ? " — " + video.description.slice(0, 120) : ""}`;
     const thumbUrl = video?.portrait_thumbnail || video?.landscape_thumbnail;
 
+    // Track share click (fire-and-forget)
+    supabase.from("share_events").insert({
+      video_id: video?.id,
+      user_id: user?.id ?? null,
+      method: typeof navigator !== "undefined" && (navigator as any).share ? "native" : "clipboard",
+    }).then(() => {}, () => {});
+
     try {
       if (navigator.share) {
         let files: File[] | undefined;
