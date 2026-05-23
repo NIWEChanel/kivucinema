@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Search, Menu, X, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import InstallPWAButton from "@/components/InstallPWAButton";
 import kivuLogo from "@/assets/kivu-logo.png";
 
 const Navbar = () => {
@@ -59,6 +60,8 @@ const Navbar = () => {
                 </button>
               )}
             </div>
+
+            <div className="hidden sm:block"><InstallPWAButton /></div>
 
             {user ? (
               <>
