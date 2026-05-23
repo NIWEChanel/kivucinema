@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
+  const [shareEvents, setShareEvents] = useState<any[]>([]);
 
   // Video form
   const [showVideoForm, setShowVideoForm] = useState(false);
