@@ -89,16 +89,18 @@ const AdminDashboard = () => {
   useEffect(() => { if (isAdmin) fetchData(); }, [isAdmin]);
 
   const fetchData = async () => {
-    const [paymentsRes, videosRes, profilesRes, plansRes] = await Promise.all([
+    const [paymentsRes, videosRes, profilesRes, plansRes, sharesRes] = await Promise.all([
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("videos").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("plans").select("*"),
+      supabase.from("share_events").select("*").order("created_at", { ascending: false }).limit(1000),
     ]);
     setPayments(paymentsRes.data || []);
     setVideos(videosRes.data || []);
     setProfiles(profilesRes.data || []);
     setPlans(plansRes.data || []);
+    setShareEvents(sharesRes.data || []);
     const approved = (paymentsRes.data || []).filter((p: any) => p.status === "approved");
     setTotalEarnings(approved.reduce((sum: number, p: any) => sum + p.amount, 0));
   };
