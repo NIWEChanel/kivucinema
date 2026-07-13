@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock } from "lucide-react";
+import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -18,6 +18,8 @@ const MovieDetail = () => {
   const [related, setRelated] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -32,6 +34,47 @@ const MovieDetail = () => {
     fetchVideo();
   }, [id]);
 
+  useEffect(() => {
+    if (!user || !id) return;
+    (supabase as any)
+      .from("favorites")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("video_id", id)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
+          setIsFavorite(true);
+          setFavoriteId(data.id);
+        }
+      });
+  }, [user, id]);
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      toast({ title: "Sign in to save favorites", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
+    if (isFavorite && favoriteId) {
+      await (supabase as any).from("favorites").delete().eq("id", favoriteId);
+      setIsFavorite(false);
+      setFavoriteId(null);
+      toast({ title: "Removed from favorites" });
+    } else {
+      const { data, error } = await (supabase as any)
+        .from("favorites")
+        .insert({ user_id: user.id, video_id: id })
+        .select("id")
+        .single();
+      if (!error && data) {
+        setIsFavorite(true);
+        setFavoriteId(data.id);
+        toast({ title: "Added to favorites" });
+      }
+    }
+  };
+
   const handleWatchNow = () => {
     if (!user) {
       toast({ title: "Please sign in first", variant: "destructive" });
@@ -43,9 +86,13 @@ const MovieDetail = () => {
       navigate("/pricing");
       return;
     }
-    // User has active subscription — play inline
     if (video?.video_url) {
       setShowPlayer(true);
+      (supabase as any).from("watch_events").insert({
+        user_id: user.id,
+        video_id: video.id,
+        watch_seconds: 0,
+      }).then(() => {}, () => {});
       setTimeout(() => document.getElementById("player-section")?.scrollIntoView({ behavior: "smooth" }), 50);
     } else {
       toast({ title: "Video coming soon", description: "This video has no playback URL yet." });
@@ -139,6 +186,9 @@ const MovieDetail = () => {
                   </Button>
                 )}
                 <Button size="lg" variant="outline" className="border-border/50 gap-2" onClick={handleShare}><Share2 className="w-5 h-5" /> Share</Button>
+                <Button size="lg" variant="outline" className={`border-border/50 gap-2 ${isFavorite ? "text-primary" : ""}`} onClick={toggleFavorite}>
+                  <Heart className="w-5 h-5" fill={isFavorite ? "currentColor" : "none"} /> {isFavorite ? "Saved" : "Save"}
+                </Button>
               </div>
             </div>
           </div>

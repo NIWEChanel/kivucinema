@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_requests: {
         Row: {
           amount: number
@@ -103,29 +132,50 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          country: string | null
           created_at: string | null
           full_name: string | null
           id: string
           is_active: boolean | null
+          language: string
+          notify_email: boolean
+          notify_push: boolean
+          notify_site: boolean
           phone: string | null
+          theme: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
+          country?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
           is_active?: boolean | null
+          language?: string
+          notify_email?: boolean
+          notify_push?: boolean
+          notify_site?: boolean
           phone?: string | null
+          theme?: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
+          country?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
           is_active?: boolean | null
+          language?: string
+          notify_email?: boolean
+          notify_push?: boolean
+          notify_site?: boolean
           phone?: string | null
+          theme?: string
           updated_at?: string | null
           user_id?: string
         }
@@ -280,6 +330,38 @@ export type Database = {
           year?: number | null
         }
         Relationships: []
+      }
+      watch_events: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          video_id: string
+          watch_seconds: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+          watch_seconds?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+          watch_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_events_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

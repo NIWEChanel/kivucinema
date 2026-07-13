@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, Menu, X, LogOut, Shield } from "lucide-react";
+import { Search, Menu, X, LogOut, Shield, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import InstallPWAButton from "@/components/InstallPWAButton";
@@ -77,6 +77,11 @@ const Navbar = () => {
                     <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow-sm">Join Now</Button>
                   </Link>
                 )}
+                <Link to="/profile" aria-label="Profile">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1">
+                    <UserIcon className="w-4 h-4" /> Profile
+                  </Button>
+                </Link>
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1" onClick={() => signOut()}>
                   <LogOut className="w-4 h-4" /> Sign Out
                 </Button>
