@@ -75,6 +75,7 @@ const MovieDetail = () => {
     }
   };
 
+  const handleWatchNow = () => {
     if (!user) {
       toast({ title: "Please sign in first", variant: "destructive" });
       navigate("/login");
@@ -85,9 +86,13 @@ const MovieDetail = () => {
       navigate("/pricing");
       return;
     }
-    // User has active subscription — play inline
     if (video?.video_url) {
       setShowPlayer(true);
+      (supabase as any).from("watch_events").insert({
+        user_id: user.id,
+        video_id: video.id,
+        watch_seconds: 0,
+      }).then(() => {}, () => {});
       setTimeout(() => document.getElementById("player-section")?.scrollIntoView({ behavior: "smooth" }), 50);
     } else {
       toast({ title: "Video coming soon", description: "This video has no playback URL yet." });
