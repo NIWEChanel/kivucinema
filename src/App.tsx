@@ -9,6 +9,8 @@ import Movies from "./pages/Movies";
 import MovieDetail from "./pages/MovieDetail";
 import Pricing from "./pages/Pricing";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
