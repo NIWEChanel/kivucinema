@@ -186,6 +186,9 @@ const MovieDetail = () => {
                   </Button>
                 )}
                 <Button size="lg" variant="outline" className="border-border/50 gap-2" onClick={handleShare}><Share2 className="w-5 h-5" /> Share</Button>
+                <Button size="lg" variant="outline" className={`border-border/50 gap-2 ${isFavorite ? "text-primary" : ""}`} onClick={toggleFavorite}>
+                  <Heart className="w-5 h-5" fill={isFavorite ? "currentColor" : "none"} /> {isFavorite ? "Saved" : "Save"}
+                </Button>
               </div>
             </div>
           </div>
