@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock } from "lucide-react";
+import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -18,6 +18,8 @@ const MovieDetail = () => {
   const [related, setRelated] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -32,7 +34,47 @@ const MovieDetail = () => {
     fetchVideo();
   }, [id]);
 
-  const handleWatchNow = () => {
+  useEffect(() => {
+    if (!user || !id) return;
+    (supabase as any)
+      .from("favorites")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("video_id", id)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
+          setIsFavorite(true);
+          setFavoriteId(data.id);
+        }
+      });
+  }, [user, id]);
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      toast({ title: "Sign in to save favorites", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
+    if (isFavorite && favoriteId) {
+      await (supabase as any).from("favorites").delete().eq("id", favoriteId);
+      setIsFavorite(false);
+      setFavoriteId(null);
+      toast({ title: "Removed from favorites" });
+    } else {
+      const { data, error } = await (supabase as any)
+        .from("favorites")
+        .insert({ user_id: user.id, video_id: id })
+        .select("id")
+        .single();
+      if (!error && data) {
+        setIsFavorite(true);
+        setFavoriteId(data.id);
+        toast({ title: "Added to favorites" });
+      }
+    }
+  };
+
     if (!user) {
       toast({ title: "Please sign in first", variant: "destructive" });
       navigate("/login");
