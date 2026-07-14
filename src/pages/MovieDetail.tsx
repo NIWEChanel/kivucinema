@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock, Heart } from "lucide-react";
+import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock, Heart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
