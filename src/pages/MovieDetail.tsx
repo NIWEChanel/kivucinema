@@ -20,6 +20,7 @@ const MovieDetail = () => {
   const [showPlayer, setShowPlayer] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [viewCount, setViewCount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchVideo = async () => {
