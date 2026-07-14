@@ -491,7 +491,7 @@ const AdminDashboard = () => {
                       <label className="text-sm text-muted-foreground mb-1 block">Category</label>
                       <select value={videoForm.category} onChange={e => setVideoForm({ ...videoForm, category: e.target.value })}
                         className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary"].map(c => <option key={c}>{c}</option>)}
+                        {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Experimental", "Series"].map(c => <option key={c}>{c}</option>)}
                       </select>
                     </div>
                     <div className="md:col-span-2">
