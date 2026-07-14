@@ -20,6 +20,14 @@ const AdminDashboard = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [shareEvents, setShareEvents] = useState<any[]>([]);
+  const [watchEvents, setWatchEvents] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+
+  // Performance state
+  const [perfRange, setPerfRange] = useState<"today" | "yesterday" | "7d" | "30d" | "3m" | "6m" | "12m" | "all">("30d");
+  const [perfSearch, setPerfSearch] = useState("");
+  const [perfCategory, setPerfCategory] = useState("All");
+  const [perfSort, setPerfSort] = useState<"views" | "least" | "watch" | "newest" | "oldest">("views");
 
   // Video form
   const [showVideoForm, setShowVideoForm] = useState(false);
