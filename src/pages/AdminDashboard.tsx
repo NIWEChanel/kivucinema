@@ -558,6 +558,162 @@ const AdminDashboard = () => {
             </>
           )}
 
+          {/* Performance Tab */}
+          {activeTab === "performance" && (
+            <div className="space-y-6">
+              {/* Time filters + export */}
+              <div className="flex flex-wrap items-center gap-2 justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {perfRanges.map(r => (
+                    <button key={r.id} onClick={() => setPerfRange(r.id)}
+                      className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${perfRange === r.id ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-border/50 text-muted-foreground hover:text-foreground"}`}>
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={exportCSV} className="gap-2"><Download className="w-4 h-4" /> Export CSV</Button>
+                </div>
+              </div>
+
+              {/* Real-time strip */}
+              <div className="glass rounded-xl p-4 flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                  <span className="text-xs text-muted-foreground">Live</span>
+                </div>
+                <div><span className="text-xs text-muted-foreground">Users online: </span><span className="font-semibold">{liveUsersOnline}</span></div>
+                <div><span className="text-xs text-muted-foreground">Active sessions: </span><span className="font-semibold">{liveActiveSessions.length}</span></div>
+                <div><span className="text-xs text-muted-foreground">Recent uploads: </span><span className="font-semibold">{videos.filter(v => new Date(v.created_at) >= new Date(Date.now() - 7 * 86400000)).length}</span></div>
+              </div>
+
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {perfCards.map((c, i) => {
+                  const p = pct(c.curr, c.prev);
+                  const up = p >= 0;
+                  return (
+                    <div key={i} className="glass rounded-xl p-4">
+                      <p className="text-xs text-muted-foreground mb-1">{c.label}</p>
+                      <p className="text-xl font-bold mb-1">{c.value}</p>
+                      <div className={`flex items-center gap-1 text-xs ${up ? "text-green-400" : "text-red-400"}`}>
+                        {up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                        <span>{Math.abs(p)}%</span>
+                        <span className="text-muted-foreground">vs previous</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Views over time chart */}
+              <div className="glass rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Views Over Time</h3>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={viewsChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
+                      <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Watch time chart */}
+              <div className="glass rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Watch Time (minutes)</h3>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={viewsChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
+                      <Bar dataKey="watchMin" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Video analytics */}
+              <div className="glass rounded-xl p-6">
+                <div className="flex flex-wrap items-center gap-3 justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Video Analytics</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input value={perfSearch} onChange={e => setPerfSearch(e.target.value)} placeholder="Search title or category"
+                        className="bg-secondary border border-border rounded-lg pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                    </div>
+                    <select value={perfCategory} onChange={e => setPerfCategory(e.target.value)}
+                      className="bg-secondary border border-border rounded-lg px-2 py-1.5 text-sm">
+                      <option>All</option>
+                      {allCategories.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                    <select value={perfSort} onChange={e => setPerfSort(e.target.value as any)}
+                      className="bg-secondary border border-border rounded-lg px-2 py-1.5 text-sm">
+                      <option value="views">Most Viewed</option>
+                      <option value="least">Least Viewed</option>
+                      <option value="watch">Highest Watch Time</option>
+                      <option value="newest">Newest</option>
+                      <option value="oldest">Oldest</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/50 text-muted-foreground">
+                        <th className="text-left py-2 font-medium">Video</th>
+                        <th className="text-left py-2 font-medium">Category</th>
+                        <th className="text-left py-2 font-medium">Uploaded</th>
+                        <th className="text-left py-2 font-medium">Status</th>
+                        <th className="text-right py-2 font-medium">Views</th>
+                        <th className="text-right py-2 font-medium">Unique</th>
+                        <th className="text-right py-2 font-medium">Avg Watch</th>
+                        <th className="text-right py-2 font-medium">Completion</th>
+                        <th className="text-left py-2 font-medium">Last Viewed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredVideos.slice(0, 100).map(v => (
+                        <tr key={v.id} className="border-b border-border/30">
+                          <td className="py-2">
+                            <div className="flex items-center gap-2">
+                              {v.portrait_thumbnail && <img src={v.portrait_thumbnail} alt="" className="w-8 h-11 rounded object-cover" />}
+                              <span className="font-medium truncate max-w-[200px]">{v.title}</span>
+                            </div>
+                          </td>
+                          <td className="py-2 text-muted-foreground">{v.category}</td>
+                          <td className="py-2 text-muted-foreground">{v.created_at ? new Date(v.created_at).toLocaleDateString() : "—"}</td>
+                          <td className="py-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs ${v.video_url ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+                              {v.video_url ? "Published" : "Draft"}
+                            </span>
+                          </td>
+                          <td className="py-2 text-right font-semibold">{v.viewsCount}</td>
+                          <td className="py-2 text-right">{v.uniqueViewers}</td>
+                          <td className="py-2 text-right">{fmtDuration(v.avgWatch)}</td>
+                          <td className="py-2 text-right">{v.completion}%</td>
+                          <td className="py-2 text-muted-foreground text-xs">{v.lastViewed ? new Date(v.lastViewed).toLocaleString() : "—"}</td>
+                        </tr>
+                      ))}
+                      {filteredVideos.length === 0 && (
+                        <tr><td colSpan={9} className="py-8 text-center text-muted-foreground">No videos match your filters</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Revenue Tab */}
           {activeTab === "revenue" && (
             <>
