@@ -182,6 +182,9 @@ const MovieDetail = () => {
                 <span className="flex items-center gap-1"><Star className="w-4 h-4 text-primary" fill="currentColor" /> {video.rating}/10</span>
                 {video.duration && <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {video.duration}</span>}
                 {video.year && <span>{video.year}</span>}
+                {viewCount !== null && (
+                  <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {viewCount.toLocaleString()} views</span>
+                )}
               </div>
               <p className="text-muted-foreground max-w-xl mb-6">{video.description}</p>
               <div className="flex flex-wrap gap-3">
