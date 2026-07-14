@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const MovieDetail = () => {
   const { id } = useParams();
-  const { user, hasActiveSubscription } = useAuth();
+  const { user, hasActiveSubscription, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [video, setVideo] = useState<any>(null);
