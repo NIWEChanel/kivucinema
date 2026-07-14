@@ -35,6 +35,16 @@ const MovieDetail = () => {
     fetchVideo();
   }, [id]);
 
+  // Load view count only for admins / premium users
+  useEffect(() => {
+    if (!id || !(isAdmin || hasActiveSubscription)) { setViewCount(null); return; }
+    (supabase as any)
+      .from("watch_events")
+      .select("id", { count: "exact", head: true })
+      .eq("video_id", id)
+      .then(({ count }: any) => setViewCount(count ?? 0));
+  }, [id, isAdmin, hasActiveSubscription]);
+
   useEffect(() => {
     if (!user || !id) return;
     (supabase as any)
