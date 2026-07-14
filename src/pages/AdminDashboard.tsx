@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Film, Users, DollarSign, Eye, Plus, Edit, Trash2, BarChart3, LogOut, Menu, X, Check, XCircle, Upload, TrendingUp, CreditCard, Share2 } from "lucide-react";
+import { Film, Users, DollarSign, Eye, Plus, Edit, Trash2, BarChart3, LogOut, Menu, X, Check, XCircle, Upload, TrendingUp, CreditCard, Share2, Activity, Download, Search, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,14 @@ const AdminDashboard = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [shareEvents, setShareEvents] = useState<any[]>([]);
+  const [watchEvents, setWatchEvents] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+
+  // Performance state
+  const [perfRange, setPerfRange] = useState<"today" | "yesterday" | "7d" | "30d" | "3m" | "6m" | "12m" | "all">("30d");
+  const [perfSearch, setPerfSearch] = useState("");
+  const [perfCategory, setPerfCategory] = useState("All");
+  const [perfSort, setPerfSort] = useState<"views" | "least" | "watch" | "newest" | "oldest">("views");
 
   // Video form
   const [showVideoForm, setShowVideoForm] = useState(false);
@@ -88,19 +96,30 @@ const AdminDashboard = () => {
 
   useEffect(() => { if (isAdmin) fetchData(); }, [isAdmin]);
 
+  // Auto-refresh Performance data every 15s while on that tab
+  useEffect(() => {
+    if (!isAdmin || activeTab !== "performance") return;
+    const t = setInterval(() => fetchData(), 15000);
+    return () => clearInterval(t);
+  }, [isAdmin, activeTab]);
+
   const fetchData = async () => {
-    const [paymentsRes, videosRes, profilesRes, plansRes, sharesRes] = await Promise.all([
+    const [paymentsRes, videosRes, profilesRes, plansRes, sharesRes, watchRes, subsRes] = await Promise.all([
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("videos").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("plans").select("*"),
       supabase.from("share_events").select("*").order("created_at", { ascending: false }).limit(1000),
+      (supabase as any).from("watch_events").select("*").order("created_at", { ascending: false }).limit(5000),
+      supabase.from("user_subscriptions").select("*"),
     ]);
     setPayments(paymentsRes.data || []);
     setVideos(videosRes.data || []);
     setProfiles(profilesRes.data || []);
     setPlans(plansRes.data || []);
     setShareEvents(sharesRes.data || []);
+    setWatchEvents(watchRes.data || []);
+    setSubscriptions(subsRes.data || []);
     const approved = (paymentsRes.data || []).filter((p: any) => p.status === "approved");
     setTotalEarnings(approved.reduce((sum: number, p: any) => sum + p.amount, 0));
   };
@@ -272,6 +291,7 @@ const AdminDashboard = () => {
 
   const sidebarLinks = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+    { id: "performance", label: "Performance", icon: Activity },
     { id: "revenue", label: "Revenue", icon: TrendingUp },
     { id: "payments", label: "Payments", icon: CreditCard },
     { id: "videos", label: "Videos", icon: Film },
@@ -288,6 +308,167 @@ const AdminDashboard = () => {
   })).sort((a, b) => b.count - a.count);
   const totalShares = shareEvents.length;
   const shares7d = shareEvents.filter(s => new Date(s.created_at) >= weekAgo).length;
+
+  // ===== Performance analytics =====
+  const rangeToDays: Record<string, number | null> = {
+    today: 1, yesterday: 1, "7d": 7, "30d": 30, "3m": 90, "6m": 180, "12m": 365, all: null,
+  };
+  const perfRangeStart = (() => {
+    if (perfRange === "all") return new Date(0);
+    if (perfRange === "today") { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+    if (perfRange === "yesterday") { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(0, 0, 0, 0); return d; }
+    const days = rangeToDays[perfRange] as number;
+    return new Date(now.getTime() - days * 86400000);
+  })();
+  const perfRangeEnd = perfRange === "yesterday"
+    ? (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })()
+    : new Date();
+  const prevPeriodStart = (() => {
+    if (perfRange === "all") return new Date(0);
+    const spanMs = perfRangeEnd.getTime() - perfRangeStart.getTime();
+    return new Date(perfRangeStart.getTime() - spanMs);
+  })();
+
+  const inRange = (ts: string) => {
+    const t = new Date(ts).getTime();
+    return t >= perfRangeStart.getTime() && t <= perfRangeEnd.getTime();
+  };
+  const inPrev = (ts: string) => {
+    const t = new Date(ts).getTime();
+    return t >= prevPeriodStart.getTime() && t < perfRangeStart.getTime();
+  };
+
+  const currentViews = watchEvents.filter(w => inRange(w.created_at));
+  const previousViews = watchEvents.filter(w => inPrev(w.created_at));
+  const totalViews = currentViews.length;
+  const prevTotalViews = previousViews.length;
+  const totalWatchSeconds = currentViews.reduce((s, w) => s + (w.watch_seconds || 0), 0);
+  const prevWatchSeconds = previousViews.reduce((s, w) => s + (w.watch_seconds || 0), 0);
+  const uniqueViewers = new Set(currentViews.map(w => w.user_id)).size;
+  const prevUniqueViewers = new Set(previousViews.map(w => w.user_id)).size;
+
+  const registeredUsers = profiles.length;
+  const newUsers = profiles.filter(p => p.created_at && inRange(p.created_at)).length;
+  const prevNewUsers = profiles.filter(p => p.created_at && inPrev(p.created_at)).length;
+  const activeUserIds = new Set(subscriptions.filter(s => s.is_active && new Date(s.expires_at) > new Date()).map(s => s.user_id));
+  const activeUsers = activeUserIds.size;
+  const returningUserIds = new Set(
+    currentViews.map(w => w.user_id).filter(uid => profiles.find(p => p.user_id === uid && !inRange(p.created_at || "")))
+  );
+  const returningUsers = returningUserIds.size;
+  const totalVideos = videos.length;
+  const publishedVideos = videos.filter(v => v.video_url).length;
+  const draftVideos = totalVideos - publishedVideos;
+
+  const pct = (curr: number, prev: number) => {
+    if (prev === 0) return curr > 0 ? 100 : 0;
+    return Math.round(((curr - prev) / prev) * 100);
+  };
+
+  const fmtDuration = (secs: number) => {
+    const h = Math.floor(secs / 3600); const m = Math.floor((secs % 3600) / 60); const s = Math.floor(secs % 60);
+    if (h) return `${h}h ${m}m`;
+    if (m) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
+
+  const perfCards = [
+    { label: "Total Views", value: totalViews.toLocaleString(), prev: prevTotalViews, curr: totalViews },
+    { label: "Total Watch Time", value: fmtDuration(totalWatchSeconds), prev: prevWatchSeconds, curr: totalWatchSeconds },
+    { label: "Unique Viewers", value: uniqueViewers.toLocaleString(), prev: prevUniqueViewers, curr: uniqueViewers },
+    { label: "Registered Users", value: registeredUsers.toLocaleString(), prev: registeredUsers - newUsers, curr: registeredUsers },
+    { label: "Active Users", value: activeUsers.toLocaleString(), prev: activeUsers, curr: activeUsers },
+    { label: "New Users", value: newUsers.toLocaleString(), prev: prevNewUsers, curr: newUsers },
+    { label: "Returning Users", value: returningUsers.toLocaleString(), prev: returningUsers, curr: returningUsers },
+    { label: "Total Videos", value: totalVideos.toLocaleString(), prev: totalVideos, curr: totalVideos },
+    { label: "Published Videos", value: publishedVideos.toLocaleString(), prev: publishedVideos, curr: publishedVideos },
+    { label: "Draft Videos", value: draftVideos.toLocaleString(), prev: draftVideos, curr: draftVideos },
+  ];
+
+  // Views over time chart data
+  const bucketCount = perfRange === "today" || perfRange === "yesterday" ? 24
+    : perfRange === "7d" ? 7
+    : perfRange === "30d" ? 30
+    : perfRange === "3m" ? 12
+    : perfRange === "6m" ? 24
+    : perfRange === "12m" ? 12
+    : 12;
+  const bucketMs = (perfRangeEnd.getTime() - perfRangeStart.getTime()) / bucketCount;
+  const viewsChart = Array.from({ length: bucketCount }, (_, i) => {
+    const bStart = perfRangeStart.getTime() + i * bucketMs;
+    const bEnd = bStart + bucketMs;
+    const count = currentViews.filter(w => {
+      const t = new Date(w.created_at).getTime();
+      return t >= bStart && t < bEnd;
+    }).length;
+    const watch = currentViews.filter(w => {
+      const t = new Date(w.created_at).getTime();
+      return t >= bStart && t < bEnd;
+    }).reduce((s, w) => s + (w.watch_seconds || 0), 0);
+    const d = new Date(bStart);
+    const label = bucketCount <= 24 && (perfRange === "today" || perfRange === "yesterday")
+      ? `${d.getHours()}:00`
+      : bucketMs < 86400000 * 20
+        ? `${d.getMonth() + 1}/${d.getDate()}`
+        : d.toLocaleString("default", { month: "short" });
+    return { label, views: count, watchMin: Math.round(watch / 60) };
+  });
+
+  // Video analytics
+  const videoAnalytics = videos.map(v => {
+    const events = currentViews.filter(w => w.video_id === v.id);
+    const uniq = new Set(events.map(w => w.user_id)).size;
+    const totalW = events.reduce((s, w) => s + (w.watch_seconds || 0), 0);
+    const avgW = events.length ? Math.round(totalW / events.length) : 0;
+    const durSecs = (() => {
+      const d = (v.duration || "").match(/(\d+)h/); const m = (v.duration || "").match(/(\d+)m/);
+      return (d ? parseInt(d[1]) * 3600 : 0) + (m ? parseInt(m[1]) * 60 : 0);
+    })();
+    const completion = durSecs ? Math.min(100, Math.round((avgW / durSecs) * 100)) : 0;
+    const last = events[0]?.created_at || null;
+    return { ...v, viewsCount: events.length, uniqueViewers: uniq, avgWatch: avgW, completion, lastViewed: last };
+  });
+  const filteredVideos = videoAnalytics
+    .filter(v => perfCategory === "All" || v.category === perfCategory)
+    .filter(v => !perfSearch || v.title.toLowerCase().includes(perfSearch.toLowerCase()) || v.category.toLowerCase().includes(perfSearch.toLowerCase()))
+    .sort((a, b) => {
+      if (perfSort === "views") return b.viewsCount - a.viewsCount;
+      if (perfSort === "least") return a.viewsCount - b.viewsCount;
+      if (perfSort === "watch") return b.avgWatch - a.avgWatch;
+      if (perfSort === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      if (perfSort === "oldest") return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      return 0;
+    });
+
+  const exportCSV = () => {
+    const headers = ["Title", "Category", "Upload Date", "Published", "Total Views", "Unique Viewers", "Avg Watch (s)", "Completion %", "Last Viewed"];
+    const rows = filteredVideos.map(v => [
+      `"${v.title.replace(/"/g, '""')}"`, v.category,
+      v.created_at ? new Date(v.created_at).toLocaleDateString() : "",
+      v.video_url ? "Yes" : "No",
+      v.viewsCount, v.uniqueViewers, v.avgWatch, v.completion,
+      v.lastViewed ? new Date(v.lastViewed).toLocaleString() : "",
+    ]);
+    const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `performance-${perfRange}-${Date.now()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const liveWindow = new Date(Date.now() - 5 * 60 * 1000);
+  const liveActiveSessions = watchEvents.filter(w => new Date(w.created_at) >= liveWindow);
+  const liveUsersOnline = new Set(liveActiveSessions.map(w => w.user_id)).size;
+
+  const perfRanges: { id: typeof perfRange; label: string }[] = [
+    { id: "today", label: "Today" }, { id: "yesterday", label: "Yesterday" },
+    { id: "7d", label: "Last 7 Days" }, { id: "30d", label: "Last 30 Days" },
+    { id: "3m", label: "Last 3 Months" }, { id: "6m", label: "Last 6 Months" },
+    { id: "12m", label: "Last 12 Months" }, { id: "all", label: "All Time" },
+  ];
+
+  const allCategories = Array.from(new Set(videos.map(v => v.category)));
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>;
 
@@ -375,6 +556,162 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </>
+          )}
+
+          {/* Performance Tab */}
+          {activeTab === "performance" && (
+            <div className="space-y-6">
+              {/* Time filters + export */}
+              <div className="flex flex-wrap items-center gap-2 justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {perfRanges.map(r => (
+                    <button key={r.id} onClick={() => setPerfRange(r.id)}
+                      className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${perfRange === r.id ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-border/50 text-muted-foreground hover:text-foreground"}`}>
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={exportCSV} className="gap-2"><Download className="w-4 h-4" /> Export CSV</Button>
+                </div>
+              </div>
+
+              {/* Real-time strip */}
+              <div className="glass rounded-xl p-4 flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                  <span className="text-xs text-muted-foreground">Live</span>
+                </div>
+                <div><span className="text-xs text-muted-foreground">Users online: </span><span className="font-semibold">{liveUsersOnline}</span></div>
+                <div><span className="text-xs text-muted-foreground">Active sessions: </span><span className="font-semibold">{liveActiveSessions.length}</span></div>
+                <div><span className="text-xs text-muted-foreground">Recent uploads: </span><span className="font-semibold">{videos.filter(v => new Date(v.created_at) >= new Date(Date.now() - 7 * 86400000)).length}</span></div>
+              </div>
+
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {perfCards.map((c, i) => {
+                  const p = pct(c.curr, c.prev);
+                  const up = p >= 0;
+                  return (
+                    <div key={i} className="glass rounded-xl p-4">
+                      <p className="text-xs text-muted-foreground mb-1">{c.label}</p>
+                      <p className="text-xl font-bold mb-1">{c.value}</p>
+                      <div className={`flex items-center gap-1 text-xs ${up ? "text-green-400" : "text-red-400"}`}>
+                        {up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                        <span>{Math.abs(p)}%</span>
+                        <span className="text-muted-foreground">vs previous</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Views over time chart */}
+              <div className="glass rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Views Over Time</h3>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={viewsChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
+                      <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Watch time chart */}
+              <div className="glass rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Watch Time (minutes)</h3>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={viewsChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
+                      <Bar dataKey="watchMin" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Video analytics */}
+              <div className="glass rounded-xl p-6">
+                <div className="flex flex-wrap items-center gap-3 justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Video Analytics</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input value={perfSearch} onChange={e => setPerfSearch(e.target.value)} placeholder="Search title or category"
+                        className="bg-secondary border border-border rounded-lg pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                    </div>
+                    <select value={perfCategory} onChange={e => setPerfCategory(e.target.value)}
+                      className="bg-secondary border border-border rounded-lg px-2 py-1.5 text-sm">
+                      <option>All</option>
+                      {allCategories.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                    <select value={perfSort} onChange={e => setPerfSort(e.target.value as any)}
+                      className="bg-secondary border border-border rounded-lg px-2 py-1.5 text-sm">
+                      <option value="views">Most Viewed</option>
+                      <option value="least">Least Viewed</option>
+                      <option value="watch">Highest Watch Time</option>
+                      <option value="newest">Newest</option>
+                      <option value="oldest">Oldest</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/50 text-muted-foreground">
+                        <th className="text-left py-2 font-medium">Video</th>
+                        <th className="text-left py-2 font-medium">Category</th>
+                        <th className="text-left py-2 font-medium">Uploaded</th>
+                        <th className="text-left py-2 font-medium">Status</th>
+                        <th className="text-right py-2 font-medium">Views</th>
+                        <th className="text-right py-2 font-medium">Unique</th>
+                        <th className="text-right py-2 font-medium">Avg Watch</th>
+                        <th className="text-right py-2 font-medium">Completion</th>
+                        <th className="text-left py-2 font-medium">Last Viewed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredVideos.slice(0, 100).map(v => (
+                        <tr key={v.id} className="border-b border-border/30">
+                          <td className="py-2">
+                            <div className="flex items-center gap-2">
+                              {v.portrait_thumbnail && <img src={v.portrait_thumbnail} alt="" className="w-8 h-11 rounded object-cover" />}
+                              <span className="font-medium truncate max-w-[200px]">{v.title}</span>
+                            </div>
+                          </td>
+                          <td className="py-2 text-muted-foreground">{v.category}</td>
+                          <td className="py-2 text-muted-foreground">{v.created_at ? new Date(v.created_at).toLocaleDateString() : "—"}</td>
+                          <td className="py-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs ${v.video_url ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+                              {v.video_url ? "Published" : "Draft"}
+                            </span>
+                          </td>
+                          <td className="py-2 text-right font-semibold">{v.viewsCount}</td>
+                          <td className="py-2 text-right">{v.uniqueViewers}</td>
+                          <td className="py-2 text-right">{fmtDuration(v.avgWatch)}</td>
+                          <td className="py-2 text-right">{v.completion}%</td>
+                          <td className="py-2 text-muted-foreground text-xs">{v.lastViewed ? new Date(v.lastViewed).toLocaleString() : "—"}</td>
+                        </tr>
+                      ))}
+                      {filteredVideos.length === 0 && (
+                        <tr><td colSpan={9} className="py-8 text-center text-muted-foreground">No videos match your filters</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Revenue Tab */}
@@ -491,7 +828,7 @@ const AdminDashboard = () => {
                       <label className="text-sm text-muted-foreground mb-1 block">Category</label>
                       <select value={videoForm.category} onChange={e => setVideoForm({ ...videoForm, category: e.target.value })}
                         className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary"].map(c => <option key={c}>{c}</option>)}
+                        {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Experimental", "Series"].map(c => <option key={c}>{c}</option>)}
                       </select>
                     </div>
                     <div className="md:col-span-2">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock, Heart } from "lucide-react";
+import { Star, Clock, Play, ArrowLeft, Youtube, Share2, Lock, Heart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const MovieDetail = () => {
   const { id } = useParams();
-  const { user, hasActiveSubscription } = useAuth();
+  const { user, hasActiveSubscription, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [video, setVideo] = useState<any>(null);
@@ -20,6 +20,7 @@ const MovieDetail = () => {
   const [showPlayer, setShowPlayer] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [viewCount, setViewCount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -33,6 +34,16 @@ const MovieDetail = () => {
     };
     fetchVideo();
   }, [id]);
+
+  // Load view count only for admins / premium users
+  useEffect(() => {
+    if (!id || !(isAdmin || hasActiveSubscription)) { setViewCount(null); return; }
+    (supabase as any)
+      .from("watch_events")
+      .select("id", { count: "exact", head: true })
+      .eq("video_id", id)
+      .then(({ count }: any) => setViewCount(count ?? 0));
+  }, [id, isAdmin, hasActiveSubscription]);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -171,6 +182,9 @@ const MovieDetail = () => {
                 <span className="flex items-center gap-1"><Star className="w-4 h-4 text-primary" fill="currentColor" /> {video.rating}/10</span>
                 {video.duration && <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {video.duration}</span>}
                 {video.year && <span>{video.year}</span>}
+                {viewCount !== null && (
+                  <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {viewCount.toLocaleString()} views</span>
+                )}
               </div>
               <p className="text-muted-foreground max-w-xl mb-6">{video.description}</p>
               <div className="flex flex-wrap gap-3">
