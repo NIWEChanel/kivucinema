@@ -96,6 +96,13 @@ const AdminDashboard = () => {
 
   useEffect(() => { if (isAdmin) fetchData(); }, [isAdmin]);
 
+  // Auto-refresh Performance data every 15s while on that tab
+  useEffect(() => {
+    if (!isAdmin || activeTab !== "performance") return;
+    const t = setInterval(() => fetchData(), 15000);
+    return () => clearInterval(t);
+  }, [isAdmin, activeTab]);
+
   const fetchData = async () => {
     const [paymentsRes, videosRes, profilesRes, plansRes, sharesRes, watchRes, subsRes] = await Promise.all([
       supabase.from("payment_requests").select("*").order("created_at", { ascending: false }),
