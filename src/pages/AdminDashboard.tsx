@@ -284,6 +284,7 @@ const AdminDashboard = () => {
 
   const sidebarLinks = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+    { id: "performance", label: "Performance", icon: Activity },
     { id: "revenue", label: "Revenue", icon: TrendingUp },
     { id: "payments", label: "Payments", icon: CreditCard },
     { id: "videos", label: "Videos", icon: Film },
@@ -300,6 +301,167 @@ const AdminDashboard = () => {
   })).sort((a, b) => b.count - a.count);
   const totalShares = shareEvents.length;
   const shares7d = shareEvents.filter(s => new Date(s.created_at) >= weekAgo).length;
+
+  // ===== Performance analytics =====
+  const rangeToDays: Record<string, number | null> = {
+    today: 1, yesterday: 1, "7d": 7, "30d": 30, "3m": 90, "6m": 180, "12m": 365, all: null,
+  };
+  const perfRangeStart = (() => {
+    if (perfRange === "all") return new Date(0);
+    if (perfRange === "today") { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+    if (perfRange === "yesterday") { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(0, 0, 0, 0); return d; }
+    const days = rangeToDays[perfRange] as number;
+    return new Date(now.getTime() - days * 86400000);
+  })();
+  const perfRangeEnd = perfRange === "yesterday"
+    ? (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })()
+    : new Date();
+  const prevPeriodStart = (() => {
+    if (perfRange === "all") return new Date(0);
+    const spanMs = perfRangeEnd.getTime() - perfRangeStart.getTime();
+    return new Date(perfRangeStart.getTime() - spanMs);
+  })();
+
+  const inRange = (ts: string) => {
+    const t = new Date(ts).getTime();
+    return t >= perfRangeStart.getTime() && t <= perfRangeEnd.getTime();
+  };
+  const inPrev = (ts: string) => {
+    const t = new Date(ts).getTime();
+    return t >= prevPeriodStart.getTime() && t < perfRangeStart.getTime();
+  };
+
+  const currentViews = watchEvents.filter(w => inRange(w.created_at));
+  const previousViews = watchEvents.filter(w => inPrev(w.created_at));
+  const totalViews = currentViews.length;
+  const prevTotalViews = previousViews.length;
+  const totalWatchSeconds = currentViews.reduce((s, w) => s + (w.watch_seconds || 0), 0);
+  const prevWatchSeconds = previousViews.reduce((s, w) => s + (w.watch_seconds || 0), 0);
+  const uniqueViewers = new Set(currentViews.map(w => w.user_id)).size;
+  const prevUniqueViewers = new Set(previousViews.map(w => w.user_id)).size;
+
+  const registeredUsers = profiles.length;
+  const newUsers = profiles.filter(p => p.created_at && inRange(p.created_at)).length;
+  const prevNewUsers = profiles.filter(p => p.created_at && inPrev(p.created_at)).length;
+  const activeUserIds = new Set(subscriptions.filter(s => s.is_active && new Date(s.expires_at) > new Date()).map(s => s.user_id));
+  const activeUsers = activeUserIds.size;
+  const returningUserIds = new Set(
+    currentViews.map(w => w.user_id).filter(uid => profiles.find(p => p.user_id === uid && !inRange(p.created_at || "")))
+  );
+  const returningUsers = returningUserIds.size;
+  const totalVideos = videos.length;
+  const publishedVideos = videos.filter(v => v.video_url).length;
+  const draftVideos = totalVideos - publishedVideos;
+
+  const pct = (curr: number, prev: number) => {
+    if (prev === 0) return curr > 0 ? 100 : 0;
+    return Math.round(((curr - prev) / prev) * 100);
+  };
+
+  const fmtDuration = (secs: number) => {
+    const h = Math.floor(secs / 3600); const m = Math.floor((secs % 3600) / 60); const s = Math.floor(secs % 60);
+    if (h) return `${h}h ${m}m`;
+    if (m) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
+
+  const perfCards = [
+    { label: "Total Views", value: totalViews.toLocaleString(), prev: prevTotalViews, curr: totalViews },
+    { label: "Total Watch Time", value: fmtDuration(totalWatchSeconds), prev: prevWatchSeconds, curr: totalWatchSeconds },
+    { label: "Unique Viewers", value: uniqueViewers.toLocaleString(), prev: prevUniqueViewers, curr: uniqueViewers },
+    { label: "Registered Users", value: registeredUsers.toLocaleString(), prev: registeredUsers - newUsers, curr: registeredUsers },
+    { label: "Active Users", value: activeUsers.toLocaleString(), prev: activeUsers, curr: activeUsers },
+    { label: "New Users", value: newUsers.toLocaleString(), prev: prevNewUsers, curr: newUsers },
+    { label: "Returning Users", value: returningUsers.toLocaleString(), prev: returningUsers, curr: returningUsers },
+    { label: "Total Videos", value: totalVideos.toLocaleString(), prev: totalVideos, curr: totalVideos },
+    { label: "Published Videos", value: publishedVideos.toLocaleString(), prev: publishedVideos, curr: publishedVideos },
+    { label: "Draft Videos", value: draftVideos.toLocaleString(), prev: draftVideos, curr: draftVideos },
+  ];
+
+  // Views over time chart data
+  const bucketCount = perfRange === "today" || perfRange === "yesterday" ? 24
+    : perfRange === "7d" ? 7
+    : perfRange === "30d" ? 30
+    : perfRange === "3m" ? 12
+    : perfRange === "6m" ? 24
+    : perfRange === "12m" ? 12
+    : 12;
+  const bucketMs = (perfRangeEnd.getTime() - perfRangeStart.getTime()) / bucketCount;
+  const viewsChart = Array.from({ length: bucketCount }, (_, i) => {
+    const bStart = perfRangeStart.getTime() + i * bucketMs;
+    const bEnd = bStart + bucketMs;
+    const count = currentViews.filter(w => {
+      const t = new Date(w.created_at).getTime();
+      return t >= bStart && t < bEnd;
+    }).length;
+    const watch = currentViews.filter(w => {
+      const t = new Date(w.created_at).getTime();
+      return t >= bStart && t < bEnd;
+    }).reduce((s, w) => s + (w.watch_seconds || 0), 0);
+    const d = new Date(bStart);
+    const label = bucketCount <= 24 && (perfRange === "today" || perfRange === "yesterday")
+      ? `${d.getHours()}:00`
+      : bucketMs < 86400000 * 20
+        ? `${d.getMonth() + 1}/${d.getDate()}`
+        : d.toLocaleString("default", { month: "short" });
+    return { label, views: count, watchMin: Math.round(watch / 60) };
+  });
+
+  // Video analytics
+  const videoAnalytics = videos.map(v => {
+    const events = currentViews.filter(w => w.video_id === v.id);
+    const uniq = new Set(events.map(w => w.user_id)).size;
+    const totalW = events.reduce((s, w) => s + (w.watch_seconds || 0), 0);
+    const avgW = events.length ? Math.round(totalW / events.length) : 0;
+    const durSecs = (() => {
+      const d = (v.duration || "").match(/(\d+)h/); const m = (v.duration || "").match(/(\d+)m/);
+      return (d ? parseInt(d[1]) * 3600 : 0) + (m ? parseInt(m[1]) * 60 : 0);
+    })();
+    const completion = durSecs ? Math.min(100, Math.round((avgW / durSecs) * 100)) : 0;
+    const last = events[0]?.created_at || null;
+    return { ...v, viewsCount: events.length, uniqueViewers: uniq, avgWatch: avgW, completion, lastViewed: last };
+  });
+  const filteredVideos = videoAnalytics
+    .filter(v => perfCategory === "All" || v.category === perfCategory)
+    .filter(v => !perfSearch || v.title.toLowerCase().includes(perfSearch.toLowerCase()) || v.category.toLowerCase().includes(perfSearch.toLowerCase()))
+    .sort((a, b) => {
+      if (perfSort === "views") return b.viewsCount - a.viewsCount;
+      if (perfSort === "least") return a.viewsCount - b.viewsCount;
+      if (perfSort === "watch") return b.avgWatch - a.avgWatch;
+      if (perfSort === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      if (perfSort === "oldest") return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      return 0;
+    });
+
+  const exportCSV = () => {
+    const headers = ["Title", "Category", "Upload Date", "Published", "Total Views", "Unique Viewers", "Avg Watch (s)", "Completion %", "Last Viewed"];
+    const rows = filteredVideos.map(v => [
+      `"${v.title.replace(/"/g, '""')}"`, v.category,
+      v.created_at ? new Date(v.created_at).toLocaleDateString() : "",
+      v.video_url ? "Yes" : "No",
+      v.viewsCount, v.uniqueViewers, v.avgWatch, v.completion,
+      v.lastViewed ? new Date(v.lastViewed).toLocaleString() : "",
+    ]);
+    const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `performance-${perfRange}-${Date.now()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const liveWindow = new Date(Date.now() - 5 * 60 * 1000);
+  const liveActiveSessions = watchEvents.filter(w => new Date(w.created_at) >= liveWindow);
+  const liveUsersOnline = new Set(liveActiveSessions.map(w => w.user_id)).size;
+
+  const perfRanges: { id: typeof perfRange; label: string }[] = [
+    { id: "today", label: "Today" }, { id: "yesterday", label: "Yesterday" },
+    { id: "7d", label: "Last 7 Days" }, { id: "30d", label: "Last 30 Days" },
+    { id: "3m", label: "Last 3 Months" }, { id: "6m", label: "Last 6 Months" },
+    { id: "12m", label: "Last 12 Months" }, { id: "all", label: "All Time" },
+  ];
+
+  const allCategories = Array.from(new Set(videos.map(v => v.category)));
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>;
 
