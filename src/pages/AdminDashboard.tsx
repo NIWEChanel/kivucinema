@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Film, Users, DollarSign, Eye, Plus, Edit, Trash2, BarChart3, LogOut, Menu, X, Check, XCircle, Upload, TrendingUp, CreditCard, Share2 } from "lucide-react";
+import { Film, Users, DollarSign, Eye, Plus, Edit, Trash2, BarChart3, LogOut, Menu, X, Check, XCircle, Upload, TrendingUp, CreditCard, Share2, Activity, Download, Search, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
