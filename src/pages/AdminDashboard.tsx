@@ -35,7 +35,7 @@ const AdminDashboard = () => {
   const [videoForm, setVideoForm] = useState({
     title: "", description: "", category: "Action", duration: "", rating: 0,
     year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "",
-    is_featured: false, is_trending: false, is_new_release: false,
+    is_featured: false, is_trending: false, is_new_release: false, is_up_coming: false,
   });
   const [landscapeFile, setLandscapeFile] = useState<File | null>(null);
   const [portraitFile, setPortraitFile] = useState<File | null>(null);
@@ -206,7 +206,7 @@ const AdminDashboard = () => {
         toast({ title: "Video added!" });
       }
       setShowVideoForm(false); setEditingVideo(null); setLandscapeFile(null); setPortraitFile(null);
-      setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false });
+      setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false, is_up_coming: false });
       fetchData();
     } catch (e: any) { toast({ title: "Error saving video", description: e.message, variant: "destructive" }); }
   };
@@ -222,7 +222,7 @@ const AdminDashboard = () => {
       title: video.title, description: video.description || "", category: video.category,
       duration: video.duration || "", rating: video.rating || 0, year: video.year || new Date().getFullYear(),
       price: video.price || 0, video_url: video.video_url || "", trailer_url: video.trailer_url || "",
-      is_featured: video.is_featured, is_trending: video.is_trending, is_new_release: video.is_new_release,
+      is_featured: video.is_featured, is_trending: video.is_trending, is_new_release: video.is_new_release, is_up_coming: video.is_up_coming,
     });
     setShowVideoForm(true);
   };
@@ -811,7 +811,7 @@ const AdminDashboard = () => {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">Video Library</h2>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-                  onClick={() => { setEditingVideo(null); setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false }); setShowVideoForm(true); }}>
+                  onClick={() => { setEditingVideo(null); setVideoForm({ title: "", description: "", category: "Action", duration: "", rating: 0, year: new Date().getFullYear(), price: 0, video_url: "", trailer_url: "", is_featured: false, is_trending: false, is_new_release: false, is_up_coming: false }); setShowVideoForm(true); }}>
                   <Plus className="w-4 h-4" /> Add Video
                 </Button>
               </div>
@@ -828,7 +828,7 @@ const AdminDashboard = () => {
                       <label className="text-sm text-muted-foreground mb-1 block">Category</label>
                       <select value={videoForm.category} onChange={e => setVideoForm({ ...videoForm, category: e.target.value })}
                         className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Experimental", "Series"].map(c => <option key={c}>{c}</option>)}
+                        {["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Animation", "Experimental", "Series"].map(c => <option key={c}>{c}</option>)}
                       </select>
                     </div>
                     <div className="md:col-span-2">
@@ -897,6 +897,7 @@ const AdminDashboard = () => {
                       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={videoForm.is_featured} onChange={e => setVideoForm({ ...videoForm, is_featured: e.target.checked })} /> Featured</label>
                       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={videoForm.is_trending} onChange={e => setVideoForm({ ...videoForm, is_trending: e.target.checked })} /> Trending</label>
                       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={videoForm.is_new_release} onChange={e => setVideoForm({ ...videoForm, is_new_release: e.target.checked })} /> New Release</label>
+                      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={videoForm.is_up_coming} onChange={e => setVideoForm({ ...videoForm, is_up_coming: e.target.checked })} /> Up Coming</label>
                     </div>
                   </div>
                   <div className="flex gap-3 mt-6">

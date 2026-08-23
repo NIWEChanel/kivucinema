@@ -23,6 +23,7 @@ const Index = () => {
 
   const trending = videos.filter(v => v.is_trending);
   const newReleases = videos.filter(v => v.is_new_release);
+  const upComing = videos.filter(v => v.is_up_coming);
 
   const VideoRow = ({ title, items }: { title: string; items: any[] }) => {
     if (items.length === 0) return null;
@@ -87,6 +88,7 @@ const Index = () => {
       <div className="-mt-16 relative z-10">
         <VideoRow title=" Trending Now" items={trending} />
         <VideoRow title=" New Releases" items={newReleases} />
+        <VideoRow title=" Up Coming" items={upComing} />
       </div>
 
       <Footer />
