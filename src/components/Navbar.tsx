@@ -79,11 +79,11 @@ const Navbar = () => {
                 )}
                 <Link to="/profile" aria-label="Profile">
                   <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1">
-                    <UserIcon className="w-4 h-4" /> Profile
+                    <UserIcon className="w-4 h-4" /> <span className="hidden md:inline">Profile</span>
                   </Button>
                 </Link>
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1" onClick={() => signOut()}>
-                  <LogOut className="w-4 h-4" /> Sign Out
+                  <LogOut className="w-4 h-4" /> <span className="hidden md:inline">Sign Out</span>
                 </Button>
               </>
             ) : (

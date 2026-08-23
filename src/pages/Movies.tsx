@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 
-const categories = ["All", "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Experimental", "Series"];
+const categories = ["All", "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Animation", "Experimental", "Series"];
 
 const Movies = () => {
   const [activeCategory, setActiveCategory] = useState("All");
